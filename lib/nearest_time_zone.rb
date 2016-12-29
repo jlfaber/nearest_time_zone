@@ -1,21 +1,20 @@
-require "csv"
-require "kdtree"
+require 'pathname'
+require 'csv'
+require 'kdtree'
 
-require "require_all"
-require_rel "./nearest_time_zone"
+require 'require_all'
+require_rel './nearest_time_zone'
 
+# Base Module
 module NearestTimeZone
-
   def self.to(latitude, longitude)
     nearest_city = City.nearest(latitude, longitude)
-    if nearest_city.present?
-      nearest_city.time_zone.name
-    end
+    nearest_city && nearest_city.time_zone.name
   end
 
   def self.dump
     Dump.dump
-    puts "dumped!"
+    puts 'dumped!'
   end
 end
 

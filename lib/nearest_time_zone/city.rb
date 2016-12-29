@@ -1,15 +1,20 @@
 module NearestTimeZone
+  # City class
   class City
+    DATA_DIR = Pathname.new(__FILE__).dirname + '../../data'.freeze
 
     attr_accessor :id, :latitude, :longitude, :time_zone_id
 
     def initialize(id, latitude, longitude, time_zone_id)
-      self.id, self.latitude, self.longitude, self.time_zone_id = id, latitude, longitude, time_zone_id
+      self.id           = id
+      self.latitude     = latitude
+      self.longitude    = longitude
+      self.time_zone_id = time_zone_id
     end
 
     def self.kdtree
       @kdtree ||= build_kdtree
-    end    
+    end
 
     def id=(value)
       @id = value.to_i
@@ -39,28 +44,23 @@ module NearestTimeZone
       TimeZone.find(time_zone_id)
     end
 
-  private
-
-    def self.load_all
-      begin
-        Marshal.load(File.read(File.expand_path("../../../data/cities.dump", __FILE__)))
-      rescue
-        cities = CSV.open(File.expand_path("../../../data/cities.txt", __FILE__))
-        Hash[
-          cities.collect do |city|
-            [city[0].to_i, NearestTimeZone::City.new(*(0..3).collect { |n| city[n] })]
-          end
-        ]
-      end
+    private_class_method def self.load_all
+      Marshal.load(File.read(DATA_DIR + 'cities.txt'))
+    rescue
+      cities = CSV.open(DATA_DIR + 'cities.txt')
+      Hash[
+        cities.collect do |city|
+          [city[0].to_i, City.new(*(0..3).collect { |n| city[n] })]
+        end
+      ]
     end
 
-    def self.build_kdtree
-      begin
-        File.open(File.expand_path("../../../data/kdtree.dump", __FILE__)) { |f| Kdtree.new(f) }
-      rescue
-        Kdtree.new all.collect { |id, city| [city.latitude, city.longitude, city.id] }
+    private_class_method def self.build_kdtree
+      File.open(DATA_DIR + 'kdtree.dump') { |f| Kdtree.new(f) }
+    rescue
+      Kdtree.new all.collect do |_id, city|
+        [city.latitude, city.longitude, city.id]
       end
     end
-
   end
 end
